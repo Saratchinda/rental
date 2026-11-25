@@ -27,4 +27,6 @@ def test_rejects_an_invalid_duration(days: int) -> None:
 def test_rejects_an_unknown_category() -> None:
     with pytest.raises(ValueError, match="Unknown vehicle category"):
         calculate_quote("utility", 1)
+
+
 # retrigger ci
