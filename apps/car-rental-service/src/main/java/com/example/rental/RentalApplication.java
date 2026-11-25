@@ -1,5 +1,6 @@
-import java.util.concurrent.atomic.AtomicBoolean;
 package com.example.rental;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
