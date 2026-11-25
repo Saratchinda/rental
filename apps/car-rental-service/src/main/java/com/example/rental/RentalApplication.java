@@ -1,3 +1,4 @@
+import java.util.concurrent.atomic.AtomicBoolean;
 package com.example.rental;
 
 import org.springframework.boot.SpringApplication;

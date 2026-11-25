@@ -1,0 +1,17 @@
+{
+  "index.qmd": {
+    "index.html": "0dc86962"
+  },
+  "labs/tp01.qmd": {
+    "tp01.html": "2739ab79"
+  },
+  "labs/tp02.qmd": {
+    "tp02.html": "f19a90a7"
+  },
+  "slides/01-ci.qmd": {
+    "01-ci.html": "817d10f3"
+  },
+  "slides/02-supply-chain.qmd": {
+    "02-supply-chain.html": "5d695204"
+  }
+}

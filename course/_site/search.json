@@ -1,0 +1,443 @@
+[
+  {
+    "objectID": "slides/02-supply-chain.html#objectifs-du-module",
+    "href": "slides/02-supply-chain.html#objectifs-du-module",
+    "title": "Checkpoint 02",
+    "section": "Objectifs du module",
+    "text": "Objectifs du module\nÀ l’issue du TP, vous saurez :\n\ndistinguer un tag d’un digest ;\nréduire le risque lié aux actions GitHub tierces ;\nlire un SBOM SPDX ;\nexpliquer ce que prouvent une signature et une attestation ;\nvérifier un livrable avant son déploiement."
+  },
+  {
+    "objectID": "slides/02-supply-chain.html#le-problème-de-limage-verte",
+    "href": "slides/02-supply-chain.html#le-problème-de-limage-verte",
+    "title": "Checkpoint 02",
+    "section": "Le problème de l’image verte",
+    "text": "Le problème de l’image verte\nLa CI du checkpoint 01 produit ghcr.io/.../service:latest.\nCe nom ne répond pas à trois questions :\n\nquels octets seront réellement déployés ?\nquel workflow les a produits ?\nquelles bibliothèques contient l’image ?\n\nUne réussite passée ne suffit pas si la référence peut changer."
+  },
+  {
+    "objectID": "slides/02-supply-chain.html#tags-et-digests",
+    "href": "slides/02-supply-chain.html#tags-et-digests",
+    "title": "Checkpoint 02",
+    "section": "Tags et digests",
+    "text": "Tags et digests\npricing-service:latest\n        |\n        | résolution à un instant donné\n        v\npricing-service@sha256:8d3f...a91c\nLe tag peut désigner un autre manifeste demain. Le digest identifie le contenu.\nDans ce checkpoint, les contrôles portent sur image@sha256:...."
+  },
+  {
+    "objectID": "slides/02-supply-chain.html#références-des-actions",
+    "href": "slides/02-supply-chain.html#références-des-actions",
+    "title": "Checkpoint 02",
+    "section": "Références des actions",
+    "text": "Références des actions\n\n# mutable\nuses: actions/checkout@v7\n\n# immuable et lisible grâce au commentaire\nuses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1\n\nLe commit empêche le déplacement silencieux de la référence. Dependabot propose les mises à jour sous forme de pull requests examinables."
+  },
+  {
+    "objectID": "slides/02-supply-chain.html#images-de-base",
+    "href": "slides/02-supply-chain.html#images-de-base",
+    "title": "Checkpoint 02",
+    "section": "Images de base",
+    "text": "Images de base\nFROM python:3.12-slim@sha256:5e2b...a4fa5b\nLe tag communique l’intention. Le digest fixe le manifeste réellement utilisé.\nUne mise à jour devient un changement Git visible, testé et réversible."
+  },
+  {
+    "objectID": "slides/02-supply-chain.html#nomenclature-logicielle",
+    "href": "slides/02-supply-chain.html#nomenclature-logicielle",
+    "title": "Checkpoint 02",
+    "section": "Nomenclature logicielle",
+    "text": "Nomenclature logicielle\nLe SBOM décrit les composants découverts dans l’image.\nDocument SPDX\n├── image et métadonnées\n├── paquets système\n├── bibliothèques applicatives\n├── versions et licences\n└── relations entre composants\nLe SBOM soutient l’inventaire et l’analyse d’impact. Il ne prouve pas, seul, qui a construit l’image."
+  },
+  {
+    "objectID": "slides/02-supply-chain.html#trois-preuves-distinctes",
+    "href": "slides/02-supply-chain.html#trois-preuves-distinctes",
+    "title": "Checkpoint 02",
+    "section": "Trois preuves distinctes",
+    "text": "Trois preuves distinctes\n\n\n\n\n\n\n\nPreuve\nQuestion traitée\n\n\n\n\nSignature Cosign\nQuelle identité a signé ce digest ?\n\n\nProvenance\nQuel workflow et quel commit ont produit ce digest ?\n\n\nAttestation SBOM\nQuel inventaire le producteur associe à ce digest ?\n\n\n\nCes preuves partagent le même sujet : le digest de l’image."
+  },
+  {
+    "objectID": "slides/02-supply-chain.html#signature-sans-clé",
+    "href": "slides/02-supply-chain.html#signature-sans-clé",
+    "title": "Checkpoint 02",
+    "section": "Signature sans clé",
+    "text": "Signature sans clé\n\n\n\n\n\n\nflowchart LR\n  W[\"Workflow GitHub\"] --&gt;|\"demande un jeton\"| O[\"OIDC GitHub\"]\n  O --&gt;|\"identité temporaire\"| W\n  W --&gt;|\"signe image@digest\"| R[\"Registre OCI\"]\n\n\n\n\n\n\nCosign lie la signature à l’identité du workflow. Aucun secret de signature permanent ne doit être stocké dans le dépôt."
+  },
+  {
+    "objectID": "slides/02-supply-chain.html#provenance-du-build",
+    "href": "slides/02-supply-chain.html#provenance-du-build",
+    "title": "Checkpoint 02",
+    "section": "Provenance du build",
+    "text": "Provenance du build\nL’attestation contient notamment :\n\nle sujet, donc le nom et le digest ;\nle dépôt et le commit source ;\nl’identité du workflow ;\nle contexte de génération de la preuve.\n\ngh attestation verify contrôle la signature de l’attestation et son lien avec le dépôt attendu."
+  },
+  {
+    "objectID": "slides/02-supply-chain.html#une-seule-identité-du-livrable",
+    "href": "slides/02-supply-chain.html#une-seule-identité-du-livrable",
+    "title": "Checkpoint 02",
+    "section": "Une seule identité du livrable",
+    "text": "Une seule identité du livrable\n\n\n\n\n\n\nflowchart LR\n  B[\"Buildx\"] --&gt; D[\"image@digest\"]\n  D --&gt; S[\"Signature\"]\n  D --&gt; P[\"Provenance\"]\n  D --&gt; M[\"SBOM\"]\n  D --&gt; V[\"Scan Trivy\"]\n  S --&gt; C[\"Vérification\"]\n  P --&gt; C\n  M --&gt; C\n\n\n\n\n\n\nScanner latest après avoir signé un digest introduirait une course entre deux objets potentiellement différents."
+  },
+  {
+    "objectID": "slides/02-supply-chain.html#permissions-du-workflow",
+    "href": "slides/02-supply-chain.html#permissions-du-workflow",
+    "title": "Checkpoint 02",
+    "section": "Permissions du workflow",
+    "text": "Permissions du workflow\nLe job de construction reçoit packages: write pour publier l’image.\nLe job de preuves ajoute uniquement :\n\nid-token: write pour l’identité OIDC ;\nattestations: write pour GitHub Attestations ;\nsecurity-events: write pour le rapport SARIF.\n\nLes jobs de test conservent contents: read."
+  },
+  {
+    "objectID": "slides/02-supply-chain.html#vérification-locale-de-la-politique",
+    "href": "slides/02-supply-chain.html#vérification-locale-de-la-politique",
+    "title": "Checkpoint 02",
+    "section": "Vérification locale de la politique",
+    "text": "Vérification locale de la politique\npython scripts/course.py supply-chain-policy\nLe contrôle refuse :\n\nune action sans SHA complet ;\nune image de base sans digest SHA-256.\n\nLa commande verify l’exécute avec les tests et les linters."
+  },
+  {
+    "objectID": "slides/02-supply-chain.html#tp-02-contrat-de-sortie",
+    "href": "slides/02-supply-chain.html#tp-02-contrat-de-sortie",
+    "title": "Checkpoint 02",
+    "section": "TP 02 — contrat de sortie",
+    "text": "TP 02 — contrat de sortie\nÀ partir de checkpoint/01-ci :\n\nremplacer les références mutables ;\nautomatiser leurs mises à jour ;\nproduire un SBOM par image ;\nsigner et attester le digest publié ;\nvérifier les preuves, puis scanner ce même digest.\n\nRésultat de référence : checkpoint/02-supply-chain."
+  },
+  {
+    "objectID": "slides/02-supply-chain.html#limites-du-checkpoint",
+    "href": "slides/02-supply-chain.html#limites-du-checkpoint",
+    "title": "Checkpoint 02",
+    "section": "Limites du checkpoint",
+    "text": "Limites du checkpoint\nLe dépôt ne vérifie pas encore les preuves à l’admission Kubernetes.\nLes dépendances transitives applicatives ne sont pas verrouillées par hash. Les images ne sont pas promues entre plusieurs environnements.\nLes prochains modules traiteront l’intégration des services, la persistance et les déploiements locaux."
+  },
+  {
+    "objectID": "slides/02-supply-chain.html#références",
+    "href": "slides/02-supply-chain.html#références",
+    "title": "Checkpoint 02",
+    "section": "Références",
+    "text": "Références\n\nGitHub Docs, Artifact attestations\nSigstore Docs, keyless signing et vérification Cosign\nSPDX Specification\nSLSA, provenance model\nOpenSSF Scorecard, pinning des dépendances"
+  },
+  {
+    "objectID": "labs/tp02.html",
+    "href": "labs/tp02.html",
+    "title": "TP 02 — produire et vérifier les preuves d’une image",
+    "section": "",
+    "text": "La pipeline construit deux images et les publie dans GHCR. L’équipe sait que les tests ont réussi, mais le tag latest ne permet pas d’établir le contenu exact qui sera déployé ni l’identité de son producteur.\nVous partez du tag checkpoint/01-ci. Le tag checkpoint/02-supply-chain sert de corrigé après le TP."
+  },
+  {
+    "objectID": "labs/tp02.html#situation",
+    "href": "labs/tp02.html#situation",
+    "title": "TP 02 — produire et vérifier les preuves d’une image",
+    "section": "",
+    "text": "La pipeline construit deux images et les publie dans GHCR. L’équipe sait que les tests ont réussi, mais le tag latest ne permet pas d’établir le contenu exact qui sera déployé ni l’identité de son producteur.\nVous partez du tag checkpoint/01-ci. Le tag checkpoint/02-supply-chain sert de corrigé après le TP."
+  },
+  {
+    "objectID": "labs/tp02.html#parcours-git-du-tp",
+    "href": "labs/tp02.html#parcours-git-du-tp",
+    "title": "TP 02 — produire et vérifier les preuves d’une image",
+    "section": "2 Parcours Git du TP",
+    "text": "2 Parcours Git du TP\nLa branche main contient l’état le plus avancé préparé par l’enseignant. Ne travaillez pas directement depuis cette branche et ne continuez pas depuis votre branche personnelle du TP 01.\nPour ce TP :\n\n\n\nRôle\nRéférence Git\n\n\n\n\nPoint de départ\ncheckpoint/01-ci\n\n\nBranche de travail\ntp/02-supply-chain\n\n\nRésultat de référence\ncheckpoint/02-supply-chain\n\n\n\nConservez votre branche du TP 01 comme archive. Le tag checkpoint/01-ci fournit à toute la promotion le même état validé. Après ce TP, votre branche tp/02-supply-chain restera également disponible, tandis que le TP 03 partira du corrigé officiel checkpoint/02-supply-chain."
+  },
+  {
+    "objectID": "labs/tp02.html#livrables",
+    "href": "labs/tp02.html#livrables",
+    "title": "TP 02 — produire et vérifier les preuves d’une image",
+    "section": "3 Livrables",
+    "text": "3 Livrables\nVotre pull request doit fournir :\n\ndes actions GitHub et images de base référencées de façon immuable ;\nune revue automatique des dépendances ;\nun SBOM SPDX JSON par image ;\nune signature Cosign sans clé ;\ndes attestations de provenance et de SBOM ;\nune vérification distante des preuves ;\nun contrôle local des références."
+  },
+  {
+    "objectID": "labs/tp02.html#préparer-la-branche-15-min",
+    "href": "labs/tp02.html#préparer-la-branche-15-min",
+    "title": "TP 02 — produire et vérifier les preuves d’une image",
+    "section": "4 0. Préparer la branche — 15 min",
+    "text": "4 0. Préparer la branche — 15 min\ngit fetch --tags\ngit switch --create tp/02-supply-chain checkpoint/01-ci\npython scripts/course.py verify\nRelevez toutes les lignes uses: et FROM. Classez chaque référence comme mutable ou immuable."
+  },
+  {
+    "objectID": "labs/tp02.html#modéliser-les-risques-25-min",
+    "href": "labs/tp02.html#modéliser-les-risques-25-min",
+    "title": "TP 02 — produire et vérifier les preuves d’une image",
+    "section": "5 1. Modéliser les risques — 25 min",
+    "text": "5 1. Modéliser les risques — 25 min\nPour chaque élément, décrivez un scénario de substitution et son impact :\n\n\n\nÉlément\nExemple de substitution\n\n\n\n\nAction GitHub\ndéplacement d’un tag majeur\n\n\nImage de base\nremplacement du manifeste derrière un tag\n\n\nImage produite\ndéplacement de latest après le scan\n\n\n\nIdentifiez ensuite la preuve ou le contrôle qui réduit chaque risque."
+  },
+  {
+    "objectID": "labs/tp02.html#épingler-les-références-45-min",
+    "href": "labs/tp02.html#épingler-les-références-45-min",
+    "title": "TP 02 — produire et vérifier les preuves d’une image",
+    "section": "6 2. Épingler les références — 45 min",
+    "text": "6 2. Épingler les références — 45 min\nRemplacez chaque version d’action par un commit complet de 40 caractères. Conservez la version lisible dans un commentaire.\nuses: actions/checkout@&lt;commit-complet&gt; # v7.0.1\nAjoutez un digest aux images de base sans retirer le tag :\nFROM python:3.12-slim@sha256:&lt;digest&gt;\nAjoutez Dependabot pour les écosystèmes github-actions et docker. Les mises à jour doivent arriver dans des pull requests ordinaires."
+  },
+  {
+    "objectID": "labs/tp02.html#contrôler-la-politique-en-local-25-min",
+    "href": "labs/tp02.html#contrôler-la-politique-en-local-25-min",
+    "title": "TP 02 — produire et vérifier les preuves d’une image",
+    "section": "7 3. Contrôler la politique en local — 25 min",
+    "text": "7 3. Contrôler la politique en local — 25 min\nAjoutez supply-chain-policy dans scripts/course.py. La commande parcourt les workflows et les Dockerfiles, puis échoue si elle rencontre :\n\nune action distante sans SHA complet ;\nune instruction FROM sans digest SHA-256.\n\npython scripts/course.py supply-chain-policy\nRéintroduisez temporairement @v7 pour observer l’échec, puis restaurez le SHA."
+  },
+  {
+    "objectID": "labs/tp02.html#revoir-les-dépendances-dune-pr-25-min",
+    "href": "labs/tp02.html#revoir-les-dépendances-dune-pr-25-min",
+    "title": "TP 02 — produire et vérifier les preuves d’une image",
+    "section": "8 4. Revoir les dépendances d’une PR — 25 min",
+    "text": "8 4. Revoir les dépendances d’une PR — 25 min\nDans les paramètres de sécurité du dépôt, activez le graphe de dépendances et les alertes de vulnérabilités. Ajoutez ensuite un workflow Dependency review limité aux pull requests. Configurez le seuil d’échec sur high.\nExpliquez pourquoi ce contrôle examine le changement de dépendances tandis que Trivy examine le contenu final de l’image."
+  },
+  {
+    "objectID": "labs/tp02.html#produire-un-sbom-35-min",
+    "href": "labs/tp02.html#produire-un-sbom-35-min",
+    "title": "TP 02 — produire et vérifier les preuves d’une image",
+    "section": "9 5. Produire un SBOM — 35 min",
+    "text": "9 5. Produire un SBOM — 35 min\nAprès publication d’une image, exécutez Syft via anchore/sbom-action sur la référence image@digest.\nContraintes :\n\nformat spdx-json ;\nfichier distinct pour Java et Python ;\nartefact conservé sept jours ;\nle digest provient directement de la sortie Buildx.\n\nTéléchargez un SBOM et retrouvez un paquet système puis une bibliothèque applicative."
+  },
+  {
+    "objectID": "labs/tp02.html#signer-et-attester-50-min",
+    "href": "labs/tp02.html#signer-et-attester-50-min",
+    "title": "TP 02 — produire et vérifier les preuves d’une image",
+    "section": "10 6. Signer et attester — 50 min",
+    "text": "10 6. Signer et attester — 50 min\nCréez un job exécuté uniquement après publication sur main. Accordez-lui les permissions minimales nécessaires.\n\nInstallez Cosign.\nSignez image@digest avec l’identité OIDC du workflow.\nAttestez la provenance avec actions/attest.\nAttestez le SBOM avec la même action et son entrée sbom-path.\n\nNe créez pas de clé privée persistante et n’ajoutez aucun secret de signature."
+  },
+  {
+    "objectID": "labs/tp02.html#vérifier-avant-de-scanner-30-min",
+    "href": "labs/tp02.html#vérifier-avant-de-scanner-30-min",
+    "title": "TP 02 — produire et vérifier les preuves d’une image",
+    "section": "11 7. Vérifier avant de scanner — 30 min",
+    "text": "11 7. Vérifier avant de scanner — 30 min\nLe workflow doit vérifier sa propre sortie :\ncosign verify \\\n  --certificate-identity \"&lt;identité-du-workflow&gt;\" \\\n  --certificate-oidc-issuer https://token.actions.githubusercontent.com \\\n  \"&lt;image@digest&gt;\"\n\ngh attestation verify \"oci://&lt;image@digest&gt;\" --repo \"&lt;owner/repo&gt;\"\nExécutez ensuite Trivy sur ce même digest. Une utilisation de latest à cette étape ne respecte pas le contrat du TP."
+  },
+  {
+    "objectID": "labs/tp02.html#lire-les-preuves-25-min",
+    "href": "labs/tp02.html#lire-les-preuves-25-min",
+    "title": "TP 02 — produire et vérifier les preuves d’une image",
+    "section": "12 8. Lire les preuves — 25 min",
+    "text": "12 8. Lire les preuves — 25 min\nÀ partir d’une exécution réussie, fournissez dans votre compte rendu :\n\nle digest vérifié ;\nl’identité du certificat Cosign ;\nle dépôt et le commit présents dans la provenance ;\ndeux composants trouvés dans le SBOM ;\nle lien vers le rapport Trivy."
+  },
+  {
+    "objectID": "labs/tp02.html#critères-dacceptation",
+    "href": "labs/tp02.html#critères-dacceptation",
+    "title": "TP 02 — produire et vérifier les preuves d’une image",
+    "section": "13 Critères d’acceptation",
+    "text": "13 Critères d’acceptation\n\n\n\nCritère\nPoints\n\n\n\n\nActions et images de base immuables\n4\n\n\nPolitique locale et Dependabot\n3\n\n\nSBOM SPDX associé au bon digest\n3\n\n\nSignature sans clé vérifiable\n3\n\n\nProvenance et attestation SBOM\n3\n\n\nPermissions minimales et vérification finale\n2\n\n\nAnalyse argumentée des preuves\n2\n\n\n\nLa validation locale est :\npython scripts/course.py verify\nLa validation distante exige les contrôles de PR verts, puis les jobs de chaîne logicielle réussis sur main."
+  },
+  {
+    "objectID": "labs/tp02.html#pour-aller-plus-loin",
+    "href": "labs/tp02.html#pour-aller-plus-loin",
+    "title": "TP 02 — produire et vérifier les preuves d’une image",
+    "section": "14 Pour aller plus loin",
+    "text": "14 Pour aller plus loin\n\nComparez un SBOM généré depuis le système de fichiers source avec celui de l’image finale.\nLimitez gh attestation verify à un type précis de prédicat.\nProposez une règle d’admission Kubernetes qui refuse une image non signée.\nÉtudiez le verrouillage par hash des dépendances Python et Gradle."
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Rental DevOps — supports",
+    "section": "",
+    "text": "Ce site accompagne une formation DevOps d’environ trente heures destinée à des étudiants de master. Chaque module part d’un tag Git, fait évoluer le système et se termine par un checkpoint vérifiable."
+  },
+  {
+    "objectID": "index.html#module-01-intégration-continue",
+    "href": "index.html#module-01-intégration-continue",
+    "title": "Rental DevOps — supports",
+    "section": "Module 01 — intégration continue",
+    "text": "Module 01 — intégration continue\n\nPrésentation : concevoir une boucle de retour utile\nTP 01 : rendre la CI observable et bloquante\n\nPoint de départ : checkpoint/00-starter\nRésultat attendu : checkpoint/01-ci"
+  },
+  {
+    "objectID": "index.html#module-02-chaîne-de-production-logicielle",
+    "href": "index.html#module-02-chaîne-de-production-logicielle",
+    "title": "Rental DevOps — supports",
+    "section": "Module 02 — chaîne de production logicielle",
+    "text": "Module 02 — chaîne de production logicielle\n\nPrésentation : établir l’identité et la provenance d’une image\nTP 02 : produire et vérifier les preuves\n\nPoint de départ : checkpoint/01-ci\nRésultat attendu : checkpoint/02-supply-chain"
+  },
+  {
+    "objectID": "labs/tp01.html",
+    "href": "labs/tp01.html",
+    "title": "TP 01 — une CI observable et bloquante",
+    "section": "",
+    "text": "Vous rejoignez l’équipe du service Rental. Deux applications sont testées et conteneurisées, mais la pipeline ne fournit pas encore une boucle de retour suffisante pour intégrer sereinement les changements.\nVotre mission consiste à rendre les contrôles explicites, reproductibles et exploitables. Vous partez du tag checkpoint/00-starter. Le tag checkpoint/01-ci sert uniquement de corrigé après le TP."
+  },
+  {
+    "objectID": "labs/tp01.html#situation",
+    "href": "labs/tp01.html#situation",
+    "title": "TP 01 — une CI observable et bloquante",
+    "section": "",
+    "text": "Vous rejoignez l’équipe du service Rental. Deux applications sont testées et conteneurisées, mais la pipeline ne fournit pas encore une boucle de retour suffisante pour intégrer sereinement les changements.\nVotre mission consiste à rendre les contrôles explicites, reproductibles et exploitables. Vous partez du tag checkpoint/00-starter. Le tag checkpoint/01-ci sert uniquement de corrigé après le TP."
+  },
+  {
+    "objectID": "labs/tp01.html#parcours-git-du-tp",
+    "href": "labs/tp01.html#parcours-git-du-tp",
+    "title": "TP 01 — une CI observable et bloquante",
+    "section": "2 Parcours Git du TP",
+    "text": "2 Parcours Git du TP\nLa branche main contient l’état le plus avancé préparé par l’enseignant. Ne travaillez pas directement depuis cette branche.\nPour ce TP :\n\n\n\nRôle\nRéférence Git\n\n\n\n\nPoint de départ\ncheckpoint/00-starter\n\n\nBranche de travail\ntp/01-ci\n\n\nRésultat de référence\ncheckpoint/01-ci\n\n\n\nConservez votre branche tp/01-ci après le TP. Elle garde la trace de votre travail, mais le TP 02 repartira du corrigé officiel checkpoint/01-ci. Tous les étudiants commenceront ainsi le checkpoint suivant depuis le même état."
+  },
+  {
+    "objectID": "labs/tp01.html#objectifs-et-livrables",
+    "href": "labs/tp01.html#objectifs-et-livrables",
+    "title": "TP 01 — une CI observable et bloquante",
+    "section": "3 Objectifs et livrables",
+    "text": "3 Objectifs et livrables\nÀ la fin du TP, votre branche contient :\n\ndeux workflows applicatifs séparant tests, qualité et image ;\nun workflow de détection de secrets ;\nCheckstyle et Ruff configurés dans le dépôt ;\ndes rapports téléchargeables après succès ou échec ;\nune commande locale qui reproduit les portes qualité ;\nune pull request courte expliquant vos choix."
+  },
+  {
+    "objectID": "labs/tp01.html#préparer-la-branche-15-min",
+    "href": "labs/tp01.html#préparer-la-branche-15-min",
+    "title": "TP 01 — une CI observable et bloquante",
+    "section": "4 0. Préparer la branche — 15 min",
+    "text": "4 0. Préparer la branche — 15 min\ngit fetch --tags\ngit switch --create tp/01-ci checkpoint/00-starter\npython scripts/course.py test\n\n4.1 Rôle de course.py\nscripts/course.py fournit des commandes portables pour le travail local. Il choisit automatiquement gradlew.bat sous Windows et ./gradlew sur les autres systèmes, puis exécute les outils dans le répertoire du service concerné.\nAu début du TP, les commandes suivantes sont déjà disponibles :\n\n\n\n\n\n\n\nCommande\nAction\n\n\n\n\nprerequisites\nVérifie la présence de Python, Java et Docker\n\n\ntest-java\nExécute gradlew clean test dans le service Java\n\n\ntest-python\nExécute Pytest avec l’interpréteur Python courant\n\n\ntest\nLance les tests Java, puis les tests Python\n\n\ncompose-up / compose-down\nConstruit, démarre ou arrête l’environnement Docker Compose\n\n\nsmoke\nVérifie les endpoints des deux services et une réponse métier attendue\n\n\n\nLa commande smoke suppose que les services sont déjà démarrés. Elle attend leur disponibilité, vérifie /health et /cars, puis contrôle qu’une cotation standard de deux jours vaut 120 EUR.\nPendant le TP, vous ajouterez lint-java, lint-python, lint et verify. La commande verify devra exécuter successivement les tests et les contrôles qualité. Si une commande échoue, le script s’arrête et retourne le code 1.\nverify reproduit les portes locales tests et qualité. Elle ne construit pas les images, ne lance pas Gitleaks, ne publie pas les rapports et ne vérifie pas la protection de branche. Ces responsabilités restent dans les workflows GitHub Actions.\nLisez les workflows existants. Pour chaque job, notez le risque couvert, les entrées, la sortie et le coût approximatif."
+  },
+  {
+    "objectID": "labs/tp01.html#observer-un-échec-25-min",
+    "href": "labs/tp01.html#observer-un-échec-25-min",
+    "title": "TP 01 — une CI observable et bloquante",
+    "section": "5 1. Observer un échec — 25 min",
+    "text": "5 1. Observer un échec — 25 min\nModifiez temporairement une assertion dans un test Python ou Java, puis ouvrez une pull request en brouillon.\nQuestions à documenter dans la PR :\n\nQuel job échoue en premier ?\nQuelle ligne permet d’identifier la cause ?\nUn rapport structuré reste-t-il disponible ?\nCombien de temps faut-il pour obtenir le retour ?\n\nRétablissez ensuite le test. Conservez cette expérience dans l’historique par deux petits commits explicites."
+  },
+  {
+    "objectID": "labs/tp01.html#ajouter-les-portes-qualité-50-min",
+    "href": "labs/tp01.html#ajouter-les-portes-qualité-50-min",
+    "title": "TP 01 — une CI observable et bloquante",
+    "section": "6 2. Ajouter les portes qualité — 50 min",
+    "text": "6 2. Ajouter les portes qualité — 50 min\n\n6.1 Java\nAjoutez le plugin Checkstyle au build Gradle et une configuration minimale couvrant au moins : imports inutilisés, accolades obligatoires, instructions vides et longueur de ligne.\ncd apps/car-rental-service\n./gradlew checkstyleMain checkstyleTest\n\n\n6.2 Python\nAjoutez Ruff aux dépendances de développement. Activez au minimum les familles E, F et I, puis vérifiez le formatage.\ncd apps/pricing-service\npython -m ruff check app tests\npython -m ruff format --check app tests\nNe corrigez pas un échec en désactivant globalement la règle : expliquez toute exception locale."
+  },
+  {
+    "objectID": "labs/tp01.html#redessiner-le-graphe-ci-55-min",
+    "href": "labs/tp01.html#redessiner-le-graphe-ci-55-min",
+    "title": "TP 01 — une CI observable et bloquante",
+    "section": "7 3. Redessiner le graphe CI — 55 min",
+    "text": "7 3. Redessiner le graphe CI — 55 min\nPour chaque service, créez trois jobs :\ntests ────┐\n          ├──&gt; image Docker\nqualité ──┘\nContraintes :\n\ntimeout explicite sur chaque job ;\npermissions minimales au niveau du workflow ;\ndépendance needs avant la construction ;\ncache des dépendances ;\nannulation d’une exécution devenue obsolète ;\naucune publication d’image depuis une pull request.\n\nAssurez-vous que les contrôles requis existent sur toutes les PR. Expliquez pourquoi un filtre paths placé sur pull_request peut être problématique."
+  },
+  {
+    "objectID": "labs/tp01.html#produire-des-preuves-35-min",
+    "href": "labs/tp01.html#produire-des-preuves-35-min",
+    "title": "TP 01 — une CI observable et bloquante",
+    "section": "8 4. Produire des preuves — 35 min",
+    "text": "8 4. Produire des preuves — 35 min\nExportez les résultats JUnit/Pytest et les rapports Checkstyle avec actions/upload-artifact. Les rapports doivent être téléversés avec if: always() et une durée de rétention limitée.\nProvoquez un nouvel échec et vérifiez concrètement qu’un rapport est disponible dans l’onglet de l’exécution."
+  },
+  {
+    "objectID": "labs/tp01.html#détecter-les-secrets-30-min",
+    "href": "labs/tp01.html#détecter-les-secrets-30-min",
+    "title": "TP 01 — une CI observable et bloquante",
+    "section": "9 5. Détecter les secrets — 30 min",
+    "text": "9 5. Détecter les secrets — 30 min\nAjoutez un workflow dédié utilisant Gitleaks sur l’historique complet.\nN’introduisez aucun vrai secret. Utilisez uniquement la valeur factice fournie par l’enseignant dans une branche jetable, observez le résultat, puis supprimez cette branche selon ses consignes.\nDans votre compte rendu, distinguez :\n\nsupprimer la ligne fautive ;\nrévoquer un secret exposé ;\nréécrire l’historique Git."
+  },
+  {
+    "objectID": "labs/tp01.html#reproduire-en-local-20-min",
+    "href": "labs/tp01.html#reproduire-en-local-20-min",
+    "title": "TP 01 — une CI observable et bloquante",
+    "section": "10 6. Reproduire en local — 20 min",
+    "text": "10 6. Reproduire en local — 20 min\nÉtendez scripts/course.py avec les commandes lint, lint-java, lint-python et verify.\npython scripts/course.py verify\nLa commande doit échouer au premier contrôle non satisfait et retourner un code différent de zéro."
+  },
+  {
+    "objectID": "labs/tp01.html#protéger-main-20-min",
+    "href": "labs/tp01.html#protéger-main-20-min",
+    "title": "TP 01 — une CI observable et bloquante",
+    "section": "11 7. Protéger main — 20 min",
+    "text": "11 7. Protéger main — 20 min\nAprès validation par l’enseignant, rendez obligatoires :\n\nJava tests, Java quality, Java Docker image ;\nPython tests, Python quality, Python Docker image ;\nSecret detection.\n\nVérifiez qu’une PR rouge ne peut pas être intégrée et qu’une PR verte le peut."
+  },
+  {
+    "objectID": "labs/tp01.html#critères-dacceptation",
+    "href": "labs/tp01.html#critères-dacceptation",
+    "title": "TP 01 — une CI observable et bloquante",
+    "section": "12 Critères d’acceptation",
+    "text": "12 Critères d’acceptation\n\n\n\nCritère\nPoints\n\n\n\n\nTests et qualité séparés, reproductibles localement\n5\n\n\nGraphe de dépendances et publication sûre des images\n4\n\n\nRapports exploitables en cas d’échec\n3\n\n\nDétection de secrets correctement bornée\n3\n\n\nPermissions, timeouts, cache et concurrence\n3\n\n\nPR claire et commits pédagogiques\n2\n\n\n\nLa validation automatique locale est :\npython scripts/course.py verify\nLa validation distante exige les sept contrôles verts et les artefacts attendus."
+  },
+  {
+    "objectID": "labs/tp01.html#pour-aller-plus-loin",
+    "href": "labs/tp01.html#pour-aller-plus-loin",
+    "title": "TP 01 — une CI observable et bloquante",
+    "section": "13 Pour aller plus loin",
+    "text": "13 Pour aller plus loin\n\nMesurez l’effet réel des caches sur deux exécutions successives.\nAjoutez une matrice de versions, puis évaluez son coût et son utilité.\nProposez une stratégie pour ne reconstruire qu’un service sans rendre les contrôles requis instables.\nIdentifiez les références d’actions qui devraient être épinglées par SHA au checkpoint suivant."
+  },
+  {
+    "objectID": "slides/01-ci.html#objectifs-du-module",
+    "href": "slides/01-ci.html#objectifs-du-module",
+    "title": "Checkpoint 01",
+    "section": "Objectifs du module",
+    "text": "Objectifs du module\nÀ l’issue du TP, vous saurez :\n\ntransformer un risque en contrôle automatisé ;\nséparer tests, qualité et construction ;\nproduire des preuves de diagnostic durables ;\ndéfinir des contrôles requis sans bloquer les PR ;\nreproduire la CI sur votre poste.\n\n\nUne pipeline verte n’est utile que si l’on comprend ce qu’elle garantit."
+  },
+  {
+    "objectID": "slides/01-ci.html#point-de-départ-checkpoint-00",
+    "href": "slides/01-ci.html#point-de-départ-checkpoint-00",
+    "title": "Checkpoint 01",
+    "section": "Point de départ : checkpoint 00",
+    "text": "Point de départ : checkpoint 00\napps/\n├── car-rental-service/   Java · Spring Boot\n└── pricing-service/      Python · FastAPI\nDéjà présent : tests, Dockerfiles, Docker Compose, construction d’images.\nEncore fragile :\n\ncontrôles difficiles à reproduire ;\nqualité non bloquante ;\npeu de preuves après un échec ;\nresponsabilité des jobs peu lisible."
+  },
+  {
+    "objectID": "slides/01-ci.html#la-ci-est-une-boucle-de-retour",
+    "href": "slides/01-ci.html#la-ci-est-une-boucle-de-retour",
+    "title": "Checkpoint 01",
+    "section": "La CI est une boucle de retour",
+    "text": "La CI est une boucle de retour\n\n\n\n\n\n\nflowchart LR\n  A[Petit changement] --&gt; B[Contrôles rapides]\n  B --&gt; C{Résultat lisible}\n  C --&gt;|échec| D[Diagnostic + correction]\n  D --&gt; A\n  C --&gt;|succès| E[Artefact candidat]\n\n\n\n\n\n\nTrois propriétés à optimiser ensemble : rapidité, fiabilité, explicabilité."
+  },
+  {
+    "objectID": "slides/01-ci.html#un-job-une-promesse",
+    "href": "slides/01-ci.html#un-job-une-promesse",
+    "title": "Checkpoint 01",
+    "section": "Un job = une promesse",
+    "text": "Un job = une promesse\n\n\n\nJob\nQuestion à laquelle il répond\n\n\n\n\nTests\nLe comportement attendu est-il préservé ?\n\n\nQualité\nLe changement respecte-t-il les règles partagées ?\n\n\nImage\nPeut-on produire le livrable déployable ?\n\n\nSecrets\nA-t-on introduit un secret dans l’historique ?\n\n\n\nSéparer les jobs localise l’échec et permet d’exprimer les dépendances."
+  },
+  {
+    "objectID": "slides/01-ci.html#le-graphe-du-checkpoint-01",
+    "href": "slides/01-ci.html#le-graphe-du-checkpoint-01",
+    "title": "Checkpoint 01",
+    "section": "Le graphe du checkpoint 01",
+    "text": "Le graphe du checkpoint 01\n\n\n\n\n\n\nflowchart TB\n  subgraph Java\n    direction LR\n    JT[Tests] --&gt; JD[Image Java]\n    JQ[Checkstyle] --&gt; JD\n  end\n  subgraph Python\n    direction LR\n    PT[Tests] --&gt; PD[Image Python]\n    PQ[Ruff] --&gt; PD\n  end\n  S[Détection de secrets]\n\n\n\n\n\n\nChaque image attend les tests et le contrôle qualité de son service."
+  },
+  {
+    "objectID": "slides/01-ci.html#local-dabord-ci-ensuite",
+    "href": "slides/01-ci.html#local-dabord-ci-ensuite",
+    "title": "Checkpoint 01",
+    "section": "Local d’abord, CI ensuite",
+    "text": "Local d’abord, CI ensuite\npython scripts/course.py verify\nCette commande exécute les mêmes familles de contrôles :\n\nGradle + Pytest pour le comportement ;\nCheckstyle + Ruff pour la qualité.\n\nLa CI ne doit pas être un environnement mystérieux réservé au serveur."
+  },
+  {
+    "objectID": "slides/01-ci.html#checkstyle-et-ruff",
+    "href": "slides/01-ci.html#checkstyle-et-ruff",
+    "title": "Checkpoint 01",
+    "section": "Checkstyle et Ruff",
+    "text": "Checkstyle et Ruff\n\n\n\n\n\n\n\n\n\nCheckstyle\nRuff\n\n\n\n\nCible\nJava 17\nPython 3.12\n\n\nContrôles\nRègles du projet\nLint et formatage\n\n\nCommande\n./gradlew checkstyleMain checkstyleTest\nruff check puis ruff format --check\n\n\nPreuve\nRapports XML et HTML\nDiagnostic dans le log\n\n\n\nLes versions et les règles restent dans le dépôt. Le même contrôle s’exécute sur le poste étudiant et dans GitHub Actions."
+  },
+  {
+    "objectID": "slides/01-ci.html#les-artefacts-racontent-léchec",
+    "href": "slides/01-ci.html#les-artefacts-racontent-léchec",
+    "title": "Checkpoint 01",
+    "section": "Les artefacts racontent l’échec",
+    "text": "Les artefacts racontent l’échec\n- name: Upload test reports\n  if: always()\n  uses: actions/upload-artifact@v7\n  with:\n    path: apps/pricing-service/build/test-results/\n    retention-days: 7\nif: always() conserve les rapports même si l’étape précédente échoue.\nUn log dit où regarder ; un rapport aide à comprendre ce qui a cassé."
+  },
+  {
+    "objectID": "slides/01-ci.html#docker-buildx",
+    "href": "slides/01-ci.html#docker-buildx",
+    "title": "Checkpoint 01",
+    "section": "Docker Buildx",
+    "text": "Docker Buildx\nBuildx pilote BuildKit et choisit où et comment exécuter la construction.\n\n\n\n\n\n\n\nCapacité\nUsage\n\n\n\n\nChoisir le builder\nDocker, conteneur dédié, Kubernetes ou service distant\n\n\nCibler plusieurs plateformes\nConstruire linux/amd64 et linux/arm64 en une commande\n\n\nChoisir la sortie\nCharger localement, pousser au registre ou exporter un artefact\n\n\nPartager le cache\nImporter et exporter des couches entre deux exécutions"
+  },
+  {
+    "objectID": "slides/01-ci.html#cache-buildx-en-ci",
+    "href": "slides/01-ci.html#cache-buildx-en-ci",
+    "title": "Checkpoint 01",
+    "section": "Cache Buildx en CI",
+    "text": "Cache Buildx en CI\n\n\ncache-from: type=gha,\n  scope=pricing-service\ncache-to: type=gha,\n  scope=pricing-service,\n  mode=max\n\n\ncache-from importe le cache au début du job.\nBuildKit ne reconstruit que les couches invalidées.\ncache-to exporte le cache à la fin du job.\n\nLe scope sépare les services. mode=max conserve aussi les étapes intermédiaires, au prix d’un cache plus volumineux.\n\nLe cache évite des téléchargements et des compilations répétés, ce qui raccourcit la boucle de retour.\n\nSans cache, le résultat reste identique et la construction prend plus de temps.\n\n\nSi vider le cache casse la build, le cache masque une dépendance."
+  },
+  {
+    "objectID": "slides/01-ci.html#le-piège-des-filtres-de-chemins",
+    "href": "slides/01-ci.html#le-piège-des-filtres-de-chemins",
+    "title": "Checkpoint 01",
+    "section": "Le piège des filtres de chemins",
+    "text": "Le piège des filtres de chemins\nUn workflow requis mais ignoré par paths peut laisser une PR en attente indéfiniment.\nDans ce checkpoint :\n\nsur pull request : tous les contrôles requis existent ;\nsur push vers main : les services non modifiés sont filtrés.\n\nOn privilégie une règle de protection prévisible avant d’optimiser quelques minutes de calcul."
+  },
+  {
+    "objectID": "slides/01-ci.html#détection-de-secrets",
+    "href": "slides/01-ci.html#détection-de-secrets",
+    "title": "Checkpoint 01",
+    "section": "Détection de secrets",
+    "text": "Détection de secrets\nGitleaks inspecte l’historique complet, pas seulement le dernier diff.\n- uses: actions/checkout@v6\n  with:\n    fetch-depth: 0\n- uses: gitleaks/gitleaks-action@v3\nUn secret détecté doit être révoqué, puis retiré de l’historique si nécessaire. Supprimer seulement la ligne ne rend pas le secret sûr."
+  },
+  {
+    "objectID": "slides/01-ci.html#lire-un-échec-méthodiquement",
+    "href": "slides/01-ci.html#lire-un-échec-méthodiquement",
+    "title": "Checkpoint 01",
+    "section": "Lire un échec méthodiquement",
+    "text": "Lire un échec méthodiquement\n\nIdentifier le premier job en échec.\nTrouver la première erreur utile, pas la dernière ligne rouge.\nTélécharger le rapport produit.\nReproduire avec scripts/course.py.\nCorriger une cause à la fois et pousser un petit commit.\n\n\nRelancer sans hypothèse n’est pas une stratégie de diagnostic."
+  },
+  {
+    "objectID": "slides/01-ci.html#tp-01-contrat-de-sortie",
+    "href": "slides/01-ci.html#tp-01-contrat-de-sortie",
+    "title": "Checkpoint 01",
+    "section": "TP 01 — contrat de sortie",
+    "text": "TP 01 — contrat de sortie\nÀ partir de checkpoint/00-starter :\n\nprovoquer puis diagnostiquer un échec ;\najouter Checkstyle et Ruff ;\npublier les rapports ;\nconstruire les images après les portes qualité ;\najouter la détection de secrets ;\nrendre les sept contrôles obligatoires sur main.\n\nRésultat de référence : checkpoint/01-ci."
+  },
+  {
+    "objectID": "slides/01-ci.html#dette-assumée",
+    "href": "slides/01-ci.html#dette-assumée",
+    "title": "Checkpoint 01",
+    "section": "Dette assumée",
+    "text": "Dette assumée\nCe checkpoint ne traite pas encore :\n\nl’épinglage des actions par SHA ;\nSBOM, signature et attestations ;\ncommunication inter-services et contrats ;\npersistance, Kind et environnement E2E.\n\n\nUn bon checkpoint ferme un objectif et rend la prochaine limite visible."
+  },
+  {
+    "objectID": "slides/01-ci.html#références",
+    "href": "slides/01-ci.html#références",
+    "title": "Checkpoint 01",
+    "section": "Références",
+    "text": "Références\n\nDocumentation GitHub Actions : workflows, artefacts et protection de branche\nDocumentation Docker : Buildx, builders et cache BuildKit\nDocumentation officielle de Ruff et Checkstyle\nOWASP CI/CD Security Cheat Sheet\n\nLes versions réellement utilisées sont visibles dans .github/workflows/ et les fichiers de configuration des services."
+  }
+]
